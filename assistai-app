@@ -1,0 +1,240 @@
+/**
+ * appState.js
+ * 
+ * Simple state management for the AssistAI application.
+ * Manages visibility of different sections and modal states.
+ */
+
+class AppState {
+    constructor() {
+        // Initialize state
+        this.state = {
+            currentView: 'procedures', // 'procedures', 'translation', 'documentation'
+            modalOpen: false,
+            voiceActive: false,
+            alertActive: false,
+            lastVoiceCommand: null,
+            userPreferences: {
+                language: 'en',
+                voiceEnabled: true,
+                autoSaveDocumentation: true
+            }
+        };
+
+        // State change listeners
+        this.listeners = {};
+    }
+
+    /**
+     * Gets current state
+     * @returns {Object} Current application state
+     */
+    getState() {
+        return { ...this.state };
+    }
+
+    /**
+     * Gets specific state value
+     * @param {string} key - State key
+     * @returns {*} State value
+     */
+    get(key) {
+        return this.state[key];
+    }
+
+    /**
+     * Updates state
+     * @param {Object} updates - Object with state updates
+     */
+    setState(updates) {
+        const previousState = { ...this.state };
+        this.state = { ...this.state, ...updates };
+        
+        // Notify listeners of changes
+        Object.keys(updates).forEach(key => {
+            if (this.listeners[key]) {
+                this.listeners[key].forEach(callback => {
+                    callback(this.state[key], previousState[key]);
+                });
+            }
+        });
+
+        // Log state changes for debugging
+        console.log('State updated:', updates);
+    }
+
+    /**
+     * Sets the current view
+     * @param {string} view - View name
+     */
+    setCurrentView(view) {
+        const validViews = ['procedures', 'translation', 'documentation'];
+        if (validViews.includes(view)) {
+            this.setState({ currentView: view });
+            this.updateViewVisibility();
+        }
+    }
+
+    /**
+     * Updates DOM visibility based on current view
+     */
+    updateViewVisibility() {
+        const views = {
+            procedures: 'procedure-list-container',
+            translation: 'translation-container',
+            documentation: 'documentation-container'
+        };
+
+        // Hide all views
+        Object.values(views).forEach(containerId => {
+            const element = document.getElementById(containerId);
+            if (element) {
+                element.classList.add('hidden');
+            }
+        });
+
+        // Show current view
+        const currentViewElement = document.getElementById(views[this.state.currentView]);
+        if (currentViewElement) {
+            currentViewElement.classList.remove('hidden');
+        }
+    }
+
+    /**
+     * Toggles modal state
+     * @param {boolean} isOpen - Modal open state
+     */
+    setModalOpen(isOpen) {
+        this.setState({ modalOpen: isOpen });
+    }
+
+    /**
+     * Sets voice activation state
+     * @param {boolean} isActive - Voice active state
+     */
+    setVoiceActive(isActive) {
+        this.setState({ voiceActive: isActive });
+        
+        // Update UI indicator
+        const voiceStatus = document.getElementById('voice-status');
+        const voiceBtn = document.getElementById('voice-input-btn');
+        
+        if (voiceStatus) {
+            voiceStatus.classList.toggle('hidden', !isActive);
+        }
+        
+        if (voiceBtn) {
+            voiceBtn.classList.toggle('bg-red-600', !isActive);
+            voiceBtn.classList.toggle('bg-red-700', isActive);
+            voiceBtn.classList.toggle('animate-pulse', isActive);
+        }
+    }
+
+    /**
+     * Sets alert state
+     * @param {boolean} isActive - Alert active state
+     */
+    setAlertActive(isActive) {
+        this.setState({ alertActive: isActive });
+    }
+
+    /**
+     * Stores last voice command
+     * @param {string} command - Voice command
+     */
+    setLastVoiceCommand(command) {
+        this.setState({ lastVoiceCommand: command });
+    }
+
+    /**
+     * Updates user preferences
+     * @param {Object} preferences - Preference updates
+     */
+    updatePreferences(preferences) {
+        this.setState({
+            userPreferences: { ...this.state.userPreferences, ...preferences }
+        });
+        
+        // Save to localStorage for persistence
+        this.savePreferences();
+    }
+
+    /**
+     * Saves preferences to localStorage
+     */
+    savePreferences() {
+        try {
+            // Note: localStorage is not available in Claude artifacts
+            // This is here for when the code is used in a real environment
+            if (typeof localStorage !== 'undefined') {
+                localStorage.setItem('assistai_preferences', JSON.stringify(this.state.userPreferences));
+            }
+        } catch (e) {
+            console.log('Could not save preferences:', e);
+        }
+    }
+
+    /**
+     * Loads preferences from localStorage
+     */
+    loadPreferences() {
+        try {
+            // Note: localStorage is not available in Claude artifacts
+            // This is here for when the code is used in a real environment
+            if (typeof localStorage !== 'undefined') {
+                const saved = localStorage.getItem('assistai_preferences');
+                if (saved) {
+                    this.setState({ userPreferences: JSON.parse(saved) });
+                }
+            }
+        } catch (e) {
+            console.log('Could not load preferences:', e);
+        }
+    }
+
+    /**
+     * Subscribes to state changes
+     * @param {string} key - State key to watch
+     * @param {Function} callback - Callback function
+     * @returns {Function} Unsubscribe function
+     */
+    subscribe(key, callback) {
+        if (!this.listeners[key]) {
+            this.listeners[key] = [];
+        }
+        
+        this.listeners[key].push(callback);
+        
+        // Return unsubscribe function
+        return () => {
+            this.listeners[key] = this.listeners[key].filter(cb => cb !== callback);
+        };
+    }
+
+    /**
+     * Resets state to initial values
+     */
+    reset() {
+        this.state = {
+            currentView: 'procedures',
+            modalOpen: false,
+            voiceActive: false,
+            alertActive: false,
+            lastVoiceCommand: null,
+            userPreferences: this.state.userPreferences // Keep preferences
+        };
+        
+        // Notify all listeners
+        Object.keys(this.listeners).forEach(key => {
+            if (this.listeners[key]) {
+                this.listeners[key].forEach(callback => {
+                    callback(this.state[key], null);
+                });
+            }
+        });
+    }
+}
+
+// Export singleton instance
+const appState = new AppState();
+export default appState;
