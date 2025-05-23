@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AssistAI - Emergency Medical Assistant</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom styles for mobile optimization -->
+    <style>
+        /* Prevent iOS bounce effect */
+        html, body {
+            position: fixed;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Custom scrollable container */
+        .scroll-container {
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-4 shadow-lg flex-shrink-0">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <h1 class="text-2xl font-bold">AssistAI</h1>
+            <div class="text-sm" id="status-indicator">Ready</div>
+        </div>
+    </header>
+    
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-hidden relative">
+        <div id="main-container" class="scroll-container p-4 pb-24">
+            <!-- Dynamic content will be injected here -->
+            <div id="procedure-list-container" class="max-w-4xl mx-auto">
+                <!-- Procedure list will be rendered here -->
+            </div>
+            
+            <!-- Hidden containers for other views -->
+            <div id="guidance-container" class="hidden"></div>
+            <div id="translation-container" class="hidden"></div>
+            <div id="documentation-container" class="hidden"></div>
+        </div>
+        
+        <!-- Safety Alert Container (overlay) -->
+        <div id="safety-alert-container" class="hidden fixed inset-x-0 top-20 mx-4 z-50"></div>
+    </main>
+    
+    <!-- Voice Input Footer -->
+    <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
+        <div class="max-w-4xl mx-auto flex justify-center">
+            <button id="voice-input-btn" 
+                    class="bg-red-600 hover:bg-red-700 text-white rounded-full p-4 shadow-lg transform transition-transform active:scale-95">
+                <!-- Microphone Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Voice Status Display -->
+        <div id="voice-status" class="hidden text-center mt-2 text-sm text-gray-600">
+            <span id="voice-status-text">Listening...</span>
+        </div>
+    </footer>
+    
+    <!-- Modal Container -->
+    <div id="modal-container" class="hidden fixed inset-0 z-50"></div>
+    
+    <!-- Load JavaScript modules -->
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>
